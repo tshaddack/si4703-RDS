@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="pragma" content="no-cache; charset=utf-8" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>si4703 RDS dumper</title>
+<style type="text/css">
+
+body {background-color:#FFFFDD}
+
+//td {vertical-align:top;padding:0px;margin:0px}
+p {text-align:justify;margin-bottom:0px}
+td.gchord {font-size:75%;font-weight:bold;padding:0px;margin:0px;padding-top:0px;padding-right:3px;text-align:left;font-family:verdana,arial;color:#888888;position:relative;top:3px}
+td.gtxt {text-align:left}
+.dettitle {border-bottom:1px lightgray dashed}
+.dettitle2 {border-bottom:1px lightgray dashed}
+
+h2 {margin-top:20px; background-color:xgray}
+h3 {background-color:xyellow;margin-top:30px;text-decoration:underline}
+h4 {padding-left:0px;margin-left:0px;text-decoration:underline;color:#333333}
+ul {margin-top:0px;padding-top:0px}
+.ref {color:gray}
+
+.gr {color:gray}
+.grsm {color:gray;font-size:80%}
+.err {color:red;font-weight:bold}
+
+a {text-color:blue;text-decoration:underline}
+a:HOVER {border-bottom:1px blue;color:red}
+a.index {text-decoration:none}
+a.index:HOVER {text-decoration:underline;color:red}
+
+.preFile {background-color:lightgray;padding:0.5em}
+
+td.imgthumb {vertical-align:top;padding:5px;font-size:80%}
+img.ico {width:12px;height:12px;overflow:visible;position:relative;margin-top:-5px}
+.imginc {max-width:100%;max-height:80vh}
+.imginccap {text-align:left;padding-bottom:0.5em}
+
+div.code {margin:0px;padding:0px;padding-left:30px;}
+.code {font-family:courier,fixed;color:green;}
+
+.cmd {font-family:courier,fixed;color:red;background-color:#FFEEDD;font-weight:bold;white-space:pre-wrap;padding-left:0.5em;;padding-right:0.5em;padding-top:0.5em;padding-bottom:0.5em}
+.cmd::first-line {color:darkred;}
+.cmd::before {content:'> ';}
+
+.cmdresp {font-family:courier,fixed;color:blue;background-color:#EEEEFF;white-space:pre-wrap;padding-left:0.5em;;padding-right:0.5em;}
+.cmdresp::first-line {color:darkblue;}
+.cmdresp::before {content:'  ';}
+
+.comm {font-family:courier,fixed;color:red;background-color:#FFEEDD;font-weight:bold;white-space:pre-wrap;padding-left:0.5em;;padding-right:0.5em;}
+.comm::first-line {color:darkred;}
+.comm::before {content:'> ';}
+
+.commresp {font-family:courier,fixed;color:blue;background-color:#EEEEFF;white-space:pre-wrap;padding-left:0.5em;;padding-right:0.5em;}
+.commresp::first-line {color:darkblue;}
+.commresp::before {content:'< ';}
+
+.bang {font-weight:bold;color:red}
+
+
+// unsupported by everything except apple, so far
+//@media screen and (inverted-colors: inverted) {
+//.cmd {background-color:#0000CC;color:lightblue;}
+//.cmd::first-line: {color:blue}
+//.cmdresp {background-color:#CC0000;color:lightred}
+//.cmdresp::first-line: {color:red}
+//}
+
+
+@media print{
+body {font-size:80%}
+.noprint {display:none;visibility:hidden}
+.xnopbr {page-break-inside:avoid}
+td.gchord: {color:black}
+.nopbr {}
+.preFile {background-color:white;border:1px dotted black}
+}
+</style>
+<meta property="og:title" content="si4703 RDS dumper" />
+<meta property="og:type" content="website" />
+<meta property="og:x-url" content="http://:" />
+<meta property="og:description" content="packet dumper and analyzer of radio data system sent via FM radio" />
+</head>
+<body>
+<h1>si4703 RDS dumper</h1><hr class="noprint" /><div class="noprint"><a class="index indexlev2" href="#Why" title="">Why</a><br /><a class="index indexlev2" href="#RDS" title="RDS">RDS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev3" href="#packetstructure" title="RDS.packet structure">packet structure</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev3" href="#groups" title="RDS.groups">groups</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev3" href="#details" title="RDS.details">details</a></small><br /><a class="index indexlev2" href="#How" title="How">How</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev3" href="#hardware" title="How.hardware">hardware</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev4" href="#gotcha" title="How.hardware.gotcha">gotcha</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev4" href="#antenna" title="How.hardware.antenna">antenna</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev4" href="#woes" title="How.hardware.woes">woes</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev3" href="#software" title="How.software">software</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev4" href="#hardwareconfiguration" title="How.software.hardware configuration">hardware configuration</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev4" href="#noninteractivemodes" title="How.software.noninteractive modes">noninteractive modes</a></small><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><a class="index indexlev4" href="#interactivemode" title="How.software.interactive mode">interactive mode</a></small><br /><a class="index indexlev2" href="#Files" title="Files">Files</a><br /><a class="index indexlev2" href="#Todo" title="Todo">Todo</a><br /></div><hr /><a name="Why"></a><h2>Why
+</h2>
+<p>
+Because it is there.
+</p>
+<hr /><a name="RDS"></a><h2>RDS
+</h2>
+<p>
+The <a class="w" href="https://en.wikipedia.org/wiki/Radio_Data_System" title="Wikipedia link: Radio Data System" target="_blank">Radio Data System</a> is a&nbsp;packet based digital data transmission over <a class="w" href="https://en.wikipedia.org/wiki/FM_radio" title="Wikipedia link: FM radio" target="_blank">FM radio</a>.
+</p>
+<p>
+The low-level transfer is done by modulating the&nbsp;data on a&nbsp;57kHz subcarrier, Manchester-encoded, 1187.5&nbsp;bit/s, in 104-bit group.
+The group consists of four pairs of 16&nbsp;and 10&nbsp;bits, where the&nbsp;latter is a&nbsp;checksum and data-recovery portion. Only recovered
+data (and two-bit error-recovery status for each word) are available from the&nbsp;Si4703&nbsp;chip. Raw data can be acquired with software-defined radio,
+eg. by the&nbsp;<a class="w" href="https://en.wikipedia.org/wiki/GNU_Radio" title="Wikipedia link: GNU Radio" target="_blank">GNU Radio</a> module <a class="a" href="https://github.com/bastibl/gr-rds/" title="remote link: https://github.com/bastibl/gr-rds/" target="_blank">https://github.com/bastibl/gr-rds/</a>.
+</p>
+<p>
+The data are sent as fixed-size packets of four 16-bit words (A,B,C,D). The "header" is fixed, the&nbsp;variable
+payload consists of 37&nbsp;bits (5&nbsp;bits in word B, and 16&nbsp;each in words C and D).
+</p>
+<p>
+The header contains inter alia the&nbsp;packet group ID, the&nbsp;type of the&nbsp;subprotocol used. There are 32&nbsp;possible
+groups (16, each with variant A and B). Some are fixed, others can be assigned to specific application.
+</p>
+<p>
+The groups are well-documented here: <a class="a" href="http://www.g.laroche.free.fr/english/rds/groupes/listeGroupesRDS.htm" title="remote link: http://www.g.laroche.free.fr/english/rds/groupes/listeGroupesRDS.htm" target="_blank">http://www.g.laroche.free.fr/english/rds/groupes/listeGroupesRDS.htm</a>
+</p>
+<p>
+The 5&nbsp;bits in word B are often used as a&nbsp;packet subvariant, or a&nbsp;pointer to text buffer, and/or various flags.
+Or they can be used as part of the&nbsp;whole payload.
+</p>
+<a name="packetstructure"></a><h3> packet structure
+</h3>
+<p>
+The signal is received on a&nbsp;57kHz subcarrier (3x the&nbsp;pilot 19kHz), as four block of 16&nbsp;bits of data plus 10&nbsp;bits of corrections.
+</p>
+<p>
+The four blocks, A-B-C-D, are the&nbsp;elementary packets of the&nbsp;protocol, with header and payload.
+The payload is specific to a&nbsp;group type, a&nbsp;sub-protocol specified in the&nbsp;header.
+</p>
+<p>
+The header consists of 16+11&nbsp;bits.
+</p>
+<ul><li> <span class="code">block A</span>, 16&nbsp;bits
+</li><ul><li> A[15..0] - <span class="code">PI</span>, program identifier
+</li><ul><li> A[15..12] - country identifier, overloaded, no two neighbouring countries share a&nbsp;country ID
+</li><li> A[11..8] - coverage area, usually static, can be dynamically changed by some stations
+</li><li> A[7..0] - program reference number, arbitrary assignment
+</li></ul></ul><li> <span class="code">block B</span>, 16&nbsp;bits
+</li><ul><li> B[15..5] - group type, program type, flags
+</li><ul><li> B[15..12] - <span class="code">group type</span>, 0..15
+</li><li> B[11] - B0, <span class="code">group subtype</span>, A/B
+</li><li> B[10] - <span class="code">TP</span> - Traffic Program, 1&nbsp;if station contains periodic traffic reports
+</li><li> B[9..5] - <span class="code">PTY</span> - program type, in a&nbsp;5-bit lookup table
+</li></ul><li> B[4..0] - VARY - payload, often flags and index bits
+</li></ul><li> <span class="code">block C</span>, 16&nbsp;bits
+</li><ul><li> payload, group dependent; in some group subtypes B it contains repeated block A, the&nbsp;PI
+</li></ul><li> <span class="code">block D</span>, 16&nbsp;bits
+</li><ul><li> payload, group dependent
+</li></ul></ul><a name="groups"></a><h3> groups
+</h3>
+<p>
+Common fixed groups are:
+<ul><li> <span class="code">0A</span> - 8-byte station name and its alternative frequencies; station name sent by 2&nbsp;bytes per packet
+</li><li> <span class="code">2A</span> - <span class="code">Radiotext</span>, 64-byte freeform text, sent by 4&nbsp;bytes per packet
+</li><li> <span class="code">3A</span> - <span class="code">ODA</span> (Open Data Applications), arbitrary services and their group assignments; mapping the&nbsp;16-bit ODAAID identifier to a&nbsp;5-bit group ID (effectively 4-bit as B subgroup is rarely used)
+</li><li> <span class="code">4A</span> - <span class="code">clock</span>, time/date sent once per minute
+</li><li> <span class="code">8A</span> - <span class="code">TMC</span> (<a class="w" href="https://en.wikipedia.org/wiki/Traffic_message_channel" title="Wikipedia link: Traffic message channel" target="_blank">Traffic message channel</a>), usually also in conjunction with 3A
+</li><li> <span class="code">10A</span> - <span class="code">PTYN</span> (program type name), a&nbsp;8-byte ASCII-encoded program type (music, sport...) instead of type by enumeration from a&nbsp;list
+</li><li> <span class="code">14A</span> - <span class="code">EON</span>, <a class="w" href="https://en.wikipedia.org/wiki/Enhanced_other_networks" title="Wikipedia link: Enhanced other networks" target="_blank">Enhanced other networks</a>, eg. presence of traffic announcement on other stations
+</li></ul></p>
+<p>
+Less common fixed groups are:
+<ul><li> <span class="code">0B</span> - station name without alternative frequencies; rarely used
+</li><li> <span class="code">1A</span> - program item number, slow label
+</li><li> <span class="code">1B</span> - program item number
+</li><li> <span class="code">2B</span> - <span class="code">Radiotext</span>, 2x 32-byte freeform text, rarely used
+</li><li> <span class="code">14B</span> - <span class="code">EON</span>, <a class="w" href="https://en.wikipedia.org/wiki/Enhanced_other_networks" title="Wikipedia link: Enhanced other networks" target="_blank">Enhanced other networks</a>, eg. presence of traffic announcement on other stations; rarely used
+</li><li> <span class="code">15B</span> - fast switching, essentially blocks A and B repeated in blocks C and D, for faster acquisition of data; rarely used
+</li></ul></p>
+<p>
+Groups that can be used for specific applications or as ODA are:
+<ul><li> <span class="code">5A</span>, <span class="code">5B</span> - transparent data channels
+</li><li> <span class="code">6A</span>, <span class="code">6B</span> - in-house applications
+</li><li> <span class="code">7A</span> - radio data paging
+</li><li> <span class="code">8A</span> - TMC
+</li><li> <span class="code">9A</span> - EWS (Emergency Warning System)
+</li><li> <span class="code">13A</span> - Enhanced Radio Paging
+</li></ul></p>
+<p>
+The other groups (7B, 8B, 9B, 10A, 10B, 11A, 11B, 12A, 12B) can be assigned as ODA, Open Data Application. The application and associated group are specified
+in the&nbsp;3A group packets. The application is specified by ODAAID, ODA application identifier. These are assigned
+centrally. E.g. the&nbsp;TMC data are sent as AID=0xCD46&nbsp;(and group 8A), and RT+ (Radiotext+) tags as AID=0x4BD7.
+</p>
+<a name="details"></a><h3> details
+</h3>
+<p>
+The online documentation is often lacking, the&nbsp;official specs are heavily paywalled. Other people's source code can be a&nbsp;substitute.
+A good parser is in the&nbsp;v4l-ctl utils, <a class="a" href="https://github.com/gjasny/v4l-utils/blob/master/lib/libv4l2rds/libv4l2rds.c" title="remote link: https://github.com/gjasny/v4l-utils/blob/master/lib/libv4l2rds/libv4l2rds.c" target="_blank">https://github.com/gjasny/v4l-utils/blob/master/lib/libv4l2rds/libv4l2rds.c</a>
+</p>
+<hr /><a name="How"></a><h2>How
+</h2>
+<p>
+A module with Si4703&nbsp;chip by Silicon Laboratories was obtained. Cheap one, with older Si4703-B16&nbsp;flavor (variant B,
+firmware version 16); more modern one is Si4703-C19.
+</p>
+<p>
+There are many other Si47xx receivers. One of the&nbsp;best is Si4743, able to handle not just VHF FM (64-108&nbsp;MHz) but
+also LW (153-288&nbsp;kHz), MW (520-1710&nbsp;kHz) and SW (2.3-30&nbsp;MHz), and WB, the&nbsp;NOAA weather band (162.4-162.55&nbsp;MHz)
+</p>
+<a name="hardware"></a><h3> hardware
+</h3>
+<p>
+The chip was attached to a&nbsp;Raspberry Pi via I2C and a&nbsp;pair of GPIO. One for RESET signal, the&nbsp;optional
+other for interrupt from the&nbsp;chip.
+</p>
+<p>
+The interrupt wire is optional. As-is, it is used only for the&nbsp;tuning operations; the&nbsp;RDS reception
+is done by I2C polling. Which is grossly suboptimal but works.
+</p>
+<p>
+The module uses headphones as an antenna. External antenna of better quality can be attached. The antenna
+is a&nbsp;major performance factor.
+</p>
+<a name="gotcha"></a><h4> gotcha
+</h4>
+<p>
+The chip has to be initialized to 2-wire mode (aka I2C).
+</p>
+<p>
+The chip can run either in 3-wire (SPI) or 2-wire (I2C/TWI) mode. If it is not seen on the&nbsp;I2C bus, it is in the&nbsp;wrong mode.
+</p>
+<p>
+As-connected, the&nbsp;chip does not appear on the&nbsp;I2C bus. It is necessary to pulse low the&nbsp;RESET pin, while holding the
+SDIO (I2C SDA) pin low. Then it appears on i2c-detect at address 0x10.
+</p>
+<p>
+The "internal crystal oscillator" in the&nbsp;datasheet is only the&nbsp;support circuitry, the&nbsp;crystal is external.
+It is possible to get rid of it by replacing the&nbsp;crystal with an oscillator. The crystal uses two pins, GPIO3&nbsp;and
+RCLK, both available on the&nbsp;crystal solder pads. In theory, after removal of the&nbsp;xtal and pulling GPIO3&nbsp;up to 3.3v,
+the init dance of mode1&nbsp;can be replaced with much easier mode2&nbsp;init without fiddling with SDIO. This may be needed when
+using an I2C-to-USB interface, or other way where we do not have bitbang-class access to SDIO. (A diode to some random GPIO
+on-hand, to pull down the&nbsp;line, may be a&nbsp;solution. This will however interfere with existing bus traffic, if it is shared
+with other processes.)
+</p>
+<p>
+Using the&nbsp;internal oscillator, the&nbsp;chip is sensitive to spurious signals from the&nbsp;SDIO line during seeking/tuning.
+This may impair performance when the&nbsp;bus is shared.
+</p>
+<p>
+If the&nbsp;application (research?) requires extra luxurious frequency stability, a&nbsp;32.768kHz TCXO can be used.
+</p>
+<a name="antenna"></a><h4> antenna
+</h4>
+<p>
+The FM antenna is connected to the&nbsp;FMI input of the&nbsp;chip.
+</p>
+<p>
+It's just around 100&nbsp;MHz, that's almost DC.
+</p>
+<p>
+The antenna guidelines are described in the&nbsp;<a class="a" href="si4703-AN383.pdf" title="local link: si4703-AN383.pdf" target="_blank">AN383</a> appnote.
+</p>
+<p>
+The on-chip tuning VCO runs at high frequency and its harmonics at gigahertz range are subject to leakage to chip's pins and cause
+various parasitic emissions from there. Various optional RC or LC filters can be applied. Including the&nbsp;antenna connection filter,
+using a&nbsp;6pF capacitor between FMI and ground, and a&nbsp;ferrite bead (Murata BLM15GA750SN1, or anything with low DC resistance and
+high resistance at around 100&nbsp;MHz) between FMI and antenna.
+</p>
+<p>
+The FM wavelength is about 3.4m (88&nbsp;MHz) to 2.8m (108&nbsp;MHz), requiring 1.7-1.4m for half-wave and 0.85-0.7m for quarter-wave.
+Headphones are often used as the&nbsp;antenna, due to their cable's approximately correct length.
+</p>
+<p>
+On the&nbsp;module, the&nbsp;ground wire of the&nbsp;headphones (from the&nbsp;onboard connector) is connected to the&nbsp;FMI pin, via
+a L-C filter (capacitor to the&nbsp;FMI pin to pass the&nbsp;high frequency, inductor to ground to stop the&nbsp;high frequency
+but allow the&nbsp;return current from the&nbsp;audio to go through).
+</p>
+<p>
+ESD diodes, with parasitic capacitance below 1&nbsp;pF, may be a&nbsp;good idea. The antenna will be exposed to all sorts of
+interference, including direct discharges when touched.
+</p>
+<p>
+It should be easy to break it out to a&nbsp;SMA connector or even just a&nbsp;header pin. Remove the&nbsp;capacitor (or use it to bypass the&nbsp;new antenna
+connector), and optionally short the&nbsp;inductor. Or use a&nbsp;pair of header pins to select between the&nbsp;headphones and a&nbsp;real antenna.
+</p>
+<a name="woes"></a><h4> woes
+</h4>
+<p>
+The module itself has a&nbsp;tendency to insensitivity after initialization. Multiple inits with different antenna positions may be necessary.
+Possibility for manual deinit and init was added to the&nbsp;interactive user interface to mitigate the&nbsp;annoyance.
+</p>
+<a name="software"></a><h3> software
+</h3>
+<p>
+Python was chosen as the&nbsp;platform, for simplicity and ease. The <a class="a" href="https://github.com/ryedwards/si4703RaspberryPi" title="remote link: https://github.com/ryedwards/si4703RaspberryPi" target="_blank">si4703RaspberryPi</a> project
+was chosen as the&nbsp;basis. Then it grew.
+</p>
+<p>
+The software can run even without the&nbsp;chip, but only for the&nbsp;parsing of rds-spy logs coming from stdin.
+</p>
+<a name="hardwareconfiguration"></a><h4> hardware configuration
+</h4>
+<p>
+in main code source file (TODO: arguments and/or config file)
+</p>
+<p>
+The chip-interacting code is hardware-dependent, due to the&nbsp;reset requiring pulsing the&nbsp;GPIO for the&nbsp;RESET pin.
+The hardware reset is segregated to a&nbsp;routine selectable by the&nbsp;"hw" parameter in the&nbsp;radio object creation. Currently supported
+are "raspi" for raspberry pi, and "none" for skipping the&nbsp;hardware init.
+</p>
+<p>
+However, parsing of the&nbsp;stdin-input .spy files does not require any hardware initialization
+and should therefore run on any machine.
+</p>
+<a name="noninteractivemodes"></a><h4> noninteractive modes
+</h4>
+<pre class="preFile">si4703 FM radio RDS data handler
+Usage: ./si4703rds.py [command] [arguments...]
+Where:
+
+    info       print expected hardware configuration
+      -n       do not access hardware
+      -i       force hardware init
+      -v       verbose init (with -i)
+
+    scan       perform scan of radio stations, list names and RDS groups encountered
+      -i       force hardware init
+
+    dump       connect to chip, dump raw data to stdout in rds-spy log format
+      -n       skip attempt to get station name from RDS
+
+    parse      read rds-spy raw data from stdin, parse, output to stdout
+      -n       do not print parsed data (use with -s, -t)
+      -s       print RDS statistics
+      -t       print RDS-TMC data
+      -v       some extra verbosity/debug data somewhere
+
+    cmd &lt;cmd&gt;  command for the chip (volume up/down, seek up/down)
+      -h       list of commands
+      -i       force init
+
+    help       print help (also -h, --help)
+      -i       print interactive commands help instead of commandline
+
+    &lt;none&gt;     enter interactive mode
+      -i       force hardware init
+
+</pre><p>
+The software can dump and and analyze RDS datastream in <a class="a" href="https://rdsspy.com/" title="remote link: https://rdsspy.com/" target="_blank">RDS-Spy</a> format.
+</p>
+<p>
+To dump data from a&nbsp;station:
+<ul><li> run the&nbsp;interactive console, tune the&nbsp;radio, exit with shift-Q
+</li><li> dump the&nbsp;data:
+</li><div class="cmd">si4703rds dump &gt;&gt; file.spy</div></ul></p>
+<pre class="">&lt;recorder="Si4703-shad" date="2023-11-27" time="19-00-06" source="1" name="COUNTRY " location="" notes="89.5&nbsp;MHz"&gt;
+2337&nbsp;2725&nbsp;6E65&nbsp;2072&nbsp;@2023/11/27&nbsp;18:00:06.95
+2337&nbsp;A720&nbsp;2020&nbsp;2020&nbsp;@2023/11/27&nbsp;18:00:07.04
+2337&nbsp;0729&nbsp;0250&nbsp;594D @2023/11/27&nbsp;18:00:07.13
+2337&nbsp;2726&nbsp;6168&nbsp;696F @2023/11/27&nbsp;18:00:07.22
+2337&nbsp;A721&nbsp;2022&nbsp;2020&nbsp;@2023/11/27&nbsp;18:00:07.30
+2337&nbsp;072A DF8F 5452&nbsp;@2023/11/27&nbsp;18:00:07.39
+2337&nbsp;2727&nbsp;2064&nbsp;6F20&nbsp;@2023/11/27&nbsp;18:00:07.48
+2337&nbsp;A730&nbsp;2020&nbsp;2020&nbsp;@2023/11/27&nbsp;18:00:07.56
+6337&nbsp;512F BBCD 5920&nbsp;@2023/11/27&nbsp;18:00:07.65
+2337&nbsp;2728&nbsp;6E65&nbsp;6B6C @2023/11/27&nbsp;18:00:07.74
+2337&nbsp;A731&nbsp;2020&nbsp;0323&nbsp;@2023/11/27&nbsp;18:00:07.83
+2337&nbsp;0728&nbsp;E614&nbsp;434F @2023/11/27&nbsp;18:00:07.91
+2337&nbsp;2729&nbsp;6964&nbsp;6E65&nbsp;@2023/11/27&nbsp;18:00:08.01
+2337&nbsp;A720&nbsp;2020&nbsp;2020&nbsp;@2023/11/27&nbsp;18:00:08.09
+...
+<br/></pre><p>
+To analyze a&nbsp;rds-spy format dump, send it to stdin of the&nbsp;program:
+<div class="cmd">cat file.spy | si4703rds parse</div></p>
+<p>
+It is possible to simultaneously dump and analyze the&nbsp;RDS data:
+<div class="cmd">si4703rds dump | tee -a file.spy | si4703rds parse</div></p>
+<p>
+A number of RDS-Spy logs from different countries can be found at <a class="a" href="https://github.com/walczakp/rds-spy-logs" title="remote link: https://github.com/walczakp/rds-spy-logs" target="_blank">https://github.com/walczakp/rds-spy-logs</a>.
+</p>
+<p>
+The dump can be also easily shared through eg. MQTT, for remote decoding:
+<div class="cmd">si4703rds dump | mosquitto_pub -t &quot;RDS&quot;</div><div class="cmd">mosquitto_sub -t &quot;RDS&quot; | si4703rds parse</div></p>
+<a name="interactivemode"></a><h4> interactive mode
+</h4>
+<pre class="preFile">
+
+Keyboard keypress controls:
+===========================
+
+&lt;space&gt; pause/resume output
+  - +   volume
+  [ ]   prev/next station
+  ?     help
+  f     filter RDS, hide 0A and 2A &quot;spam&quot;
+  h     hide/show fixed header
+
+  g     toggle 2A radiotext string vs group stats
+  s     show RDS string buffers
+  t     show RDS-TMC traffic data log
+
+  S     stations scan
+
+  i     reset/initialize chip
+  I     powerdown chip
+  r     show chip registers
+
+  q     quit, switch off radio
+  Q     quit, keep radio running
+
+status line format:
+freq RSSI &quot;station&quot; state current-group seen-groups &quot;radiotext&quot;/stats [&lt;paused/filtered&gt;]
+state can be P for paused, F for filtering, R flashing when group was received
+
+
+Filters: [[], ['0A', '2A'], ['=2A'], ['=3A'], ['=8A']]
+
+</pre><p>
+Example output:
+<pre class=""> 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0443:c5a1:2020&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=03&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=3&nbsp;"R-PLUS  " [b'  '] Dx=0000&nbsp;AF=107.2&nbsp;AF=103.6
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:8446:cb29:11b7&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=06&nbsp; GTYPE=8A:TMC           06:cb29:11b7&nbsp;userMsg multi 1st contIdx=6&nbsp;diversion=1&nbsp;dir=1&nbsp;scale=1&nbsp;event=809&nbsp;loc=11b7
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0440:2885:522d  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=00&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=0&nbsp;"R-PLUS  " [b'R-'] Dx=0000&nbsp;AF=091.5&nbsp;AF=100.8
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:244b:736b:6120&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=0b  GTYPE=2A:radioText     11&nbsp;[ska ] "Pro a&nbsp;proti - Nejvetsi protest v historii Ceska ____d pondeln..."
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0441:428c:504c  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=01&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=1&nbsp;"R-PLUS  " [b'PL'] Dx=0000&nbsp;AF=094.1&nbsp;AF=101.5
+ 92.6&nbsp; 9&nbsp; 3103&nbsp; 241f:3450:4080:cd46&nbsp; bad blocks, skipping
+ 92.6&nbsp; 9&nbsp; 3100&nbsp; 9027:8446:cb29:11b7&nbsp; bad blocks, skipping
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0442:673c:5553&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=02&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=2&nbsp;"R-PLUS  " [b'US'] Dx=0000&nbsp;AF=097.8&nbsp;AF=093.5
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:244c:7369:206f  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=0c  GTYPE=2A:radioText     12&nbsp;[si o] "Pro a&nbsp;proti - Nejvetsi protest v historii Ceska si od pondeln..."
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0443:4035:2020&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=03&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=3&nbsp;"R-PLUS  " [b'  '] Dx=0000&nbsp;AF=093.9&nbsp;AF=092.8
+ 92.6&nbsp;10&nbsp; 0000&nbsp; 2424:8446:61a2:ac00&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=06&nbsp; GTYPE=8A:TMC           06:61a2:ac00&nbsp;userMsg multi 2ndGrp=1&nbsp;grpOrder=2&nbsp;data=1a2ac00
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0440:ef33:522d  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=00&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=0&nbsp;"R-PLUS  " [b'R-'] Dx=0000&nbsp;AF=[follow:15] AF=092.6
+ 92.6&nbsp;10&nbsp; 0000&nbsp; 2424:244d:6420:706f  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=0d  GTYPE=2A:radioText     13&nbsp;[d po] "Pro a&nbsp;proti - Nejvetsi protest v historii Ceska si od pondeln..."
+ 92.6&nbsp;10&nbsp; 0000&nbsp; 2424:8446:61a2:ac00&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=06&nbsp; GTYPE=8A:TMC           06:61a2:ac00&nbsp;userMsg multi 2ndGrp=1&nbsp;grpOrder=2&nbsp;data=1a2ac00
+ 92.6&nbsp;10&nbsp; 0000&nbsp; 2424:0441:3a4f:504c  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=01&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=1&nbsp;"R-PLUS  " [b'PL'] Dx=0000&nbsp;AF=093.3&nbsp;AF=095.4
+ 92.6&nbsp;10&nbsp; 0001&nbsp; 2424:3450:0647:cd46&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=10&nbsp; GTYPE=3A:openDataAppId 10:0647:cd46&nbsp;grp=8A msg=0647&nbsp;appId=cd46(TMC ALERT-C) varcode=0&nbsp;loctable=0019&nbsp;altfreq=0&nbsp;transmode=0&nbsp;internat=0&nbsp;national=1&nbsp;regional=1&nbsp;urban=1
+ 92.6&nbsp;10&nbsp; 0000&nbsp; 2424:0442:9026:5553&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=02&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=2&nbsp;"R-PLUS  " [b'US'] Dx=0000&nbsp;AF=101.9&nbsp;AF=091.3
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:244e:6e64:656c  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=0e  GTYPE=2A:radioText     14&nbsp;[ndel] "Pro a&nbsp;proti - Nejvetsi protest v historii Ceska si od pondeln..."
+ 92.6&nbsp;10&nbsp; 0310&nbsp; 2424:044c:49ad:2020&nbsp; bad blocks, skipping
+ 92.6&nbsp; 9&nbsp; 0030&nbsp; 2424:8446:1c45:0158&nbsp; bad blocks, skipping
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0440:2885:522d  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=00&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=0&nbsp;"R-PLUS  " [b'R-'] Dx=0000&nbsp;AF=091.5&nbsp;AF=100.8
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:244f:6e2e:2e2e  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=0f  GTYPE=2A:radioText     15&nbsp;[n...] "Pro a&nbsp;proti - Nejvetsi protest v historii Ceska si od pondeln..."
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:8446:1025:0158&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=06&nbsp; GTYPE=8A:TMC           06:1025:0158&nbsp;userMsg multi 2ndGrp=0&nbsp;grpOrder=1&nbsp;data=0250158
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0441:428c:504c  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=01&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=1&nbsp;"R-PLUS  " [b'PL'] Dx=0000&nbsp;AF=094.1&nbsp;AF=101.5
+ 92.6&nbsp;10&nbsp; 0010&nbsp; 2424:0442:673c:5553&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=02&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=2&nbsp;"R-PLUS  " [b'US'] Dx=0000&nbsp;AF=097.8&nbsp;AF=093.5
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:2440:5072:6f20&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=00&nbsp; GTYPE=2A:radioText     00&nbsp;[Pro ] "Pro a&nbsp;proti - Nejvetsi protest v historii Ceska si od pondeln..."
+ 92.6&nbsp;10&nbsp; 0000&nbsp; 2424:0443:4035:2020&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=03&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=3&nbsp;"R-PLUS  " [b'  '] Dx=0000&nbsp;AF=093.9&nbsp;AF=092.8
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:8446:0000:0000&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=06&nbsp; GTYPE=8A:TMC           06:0000:0000&nbsp;userMsg multi 2ndGrp=0&nbsp;grpOrder=0&nbsp;data=0000000
+ 92.6&nbsp; 9&nbsp; 0000&nbsp; 2424:0440:ef33:522d  PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=00&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=0&nbsp;"R-PLUS  " [b'R-'] Dx=0000&nbsp;AF=[follow:15] AF=092.6
+ 92.6&nbsp; 8&nbsp; "R-PLUS  " R  8A 0123488^  "Pro a&nbsp;proti - Nejvetsi protest vp@istorii Ceska si od pondeln..." <paused>
+</pre></p>
+<p>
+The event lines are as follows:
+<pre class=""> 92.6&nbsp;10&nbsp; 0010&nbsp; 2424:0442:673c:5553&nbsp; PIC=2424&nbsp;TP=1&nbsp;PTY=2&nbsp;VARY=02&nbsp; GTYPE=0A:basicTuning   TA=0&nbsp;MS=0&nbsp;DI=0&nbsp;C=2&nbsp;"R-PLUS  " [b'US'] Dx=0000&nbsp;AF=097.8&nbsp;AF=093.5
+ freq |   |     |                    |                            |                      |
+     RSSI, signal strength           |                            |                      |
+          data recovery flags (0=received ok, 1=1-2&nbsp;errors, 2=3-5&nbsp;errors, 3=uncorrectable (>5&nbsp;errors or error in checkword
+                raw data, A:B:C:D    |                            |                      |
+                                     fixed header data from A:B   |                      |
+                                                                  group type, name if known
+                                                                                         group-specific data, if format known and decoder implemented
+</pre></p>
+<p>
+The status line at bottom is as follows:
+<pre class=""> 92.6&nbsp; 8&nbsp; "R-PLUS  " R  8A 0123488^  "Pro a&nbsp;proti - Nejvetsi protest vp@istorii Ceska si od pondeln..." &lt;paused&gt;
+ freq  |  |          |  |  |         |                                                                  |
+      RSSI|          |  |  |         |                                                                  |
+          8-byte station name from group 0A                                                             |
+                     P=paused, F=filtered, R=RDS packet received                                        |
+                        most recent RDS group received                                                  |
+                           list of groups seen, hex, lowercase=variant-A, uppercase or with ^ suffix=variant B, shows misreceived group 8B
+                                     radiotext from group 2A/2B                                         |
+                                                                                                        paused/filtered (with filter designation), or none when running
+</pre></p>
+<p>
+Strings and statistics (key "<span class="code">S</span>"):
+<pre class="">  0A     "COUNTRY "
+  0Ab    "0001"
+  2&nbsp;     "GLEN CAMPBELL - OL NORWOODS COMING HOME                         "
+  PTYN   "        "
+  TMCID  "________"
+  clock  2118-12-10&nbsp;04:13
+  stat:  [-- 289x 7.2%]  [0A 1227x 33.1%]  [2A 1242x 33.5%]  [4A 2x 0.1%]  [10A 1235x 33.3%]
+  stat:  suspected bad:  [3A 1x 0.0%]  [11B 1x 0.0%]
+  ODA:
+</pre></p>
+<p>
+stats from poorly received station, with show of corrupted data fields
+<pre class="">  0A     "R-PLUS  "
+  0Ab    "0000"
+  2&nbsp;     "Cesk____zhlas Plus - politika-spolecnost-byznys-veda    ____    "
+  PTYN   b(b'____a\xb6@@')
+  TMCID  "DIC ____"
+  clock  2169-7-7&nbsp;22:17
+  stat:  [-- 3046x 95.1%]  [0A 69x 43.7%]  [2A 37x 23.4%]  [3A 15x 9.5%]  [4A 2x 1.3%]  [8A 29x 18.4%]
+  stat:  suspected bad:  [1A 1x 0.6%]  [2B 1x 0.6%]  [9A 1x 0.6%]  [10A 1x 0.6%]  [12A 2x 1.3%]
+  ODA:   [8A 0xCD46(TMC) 7x]
+</pre></p>
+<p>
+another stats block, from a&nbsp;highly noisy source, shows spurious ODA data
+<pre class="">  0A     "COUNTRY "
+  0Ab    "0001"
+  2&nbsp;     "ZALM!~ A SPOL - HO HO WATANAY                         &#        "
+  PTYN   "@8&nbsp;     "
+  TMCID  "________"
+  clock  1959-11-29&nbsp;20:17
+  stat:  [-- 8588x 46.7%]  [0A 3295x 33.6%]  [2A 3276x 33.5%]  [4A 2x 0.0%]  [10A 3157x 32.2%]
+  stat:  suspected bad:  [0B 1x 0.0%]  [1A 4x 0.0%]  [2B 2x 0.0%]  [3A 10x 0.1%]  [6A 13x 0.1%]  [8A 5x 0.1%]  [9A 6x 0.1%]  [11A 4x 0.0%]  [11B 1x 0.0%]  [12A 9x 0.1%]  [14A 7x 0.1%]  [15A 1x 0.0%]
+  ODA:   [8A 0x434F 1x]  [11B 0x5920&nbsp;1x]  [9A 0x5452&nbsp;1x]  [8B 0x554E 1x]
+</pre></p>
+<ul><li> 0A = station name from group 0A
+</li><li> 0Ab = D bits from group 0A
+</li><li> PTYN = program type/name, from group 10A
+</li><li> TMCID = TMC identification string, from group 8A
+</li><li> clock = clock from group 4&nbsp;(shown miscalculated clock from corrupted data)
+</li><li> stat = statistic of groups; -- for rejected packet (shows horribly weak signal), group:count,percentage (shows lots of misreceived groups, the&nbsp;sub-percent ones are misread)
+</li><ul><li> rejected packet percenteage is from packets total, other percentage is from nonrejected
+</li><li> suspected bad are packets with less than 2% prevalence, except group 4A which is only once per minute
+</li></ul><li> ODA = list of open-data groups assigned from group 3A, [group number(name) count]
+</li><ul><li> ODA list is populated only from packets received without error correction; on weaker stations this may take time
+</li></ul></ul><p>
+Filters can be applied to the&nbsp;realtime output; <span class="code">f</span> key cycles through the&nbsp;presets which are possible to edit in the&nbsp;main program file,
+or switch off with <span class="code">F</span>. Preset filters are:
+<ul><li> none - show everything
+</li><li> <span class="code">0A, 2A</span> - hide the&nbsp;most common "spam"
+</li><li> <span class="code">=2A</span> - show only the&nbsp;radiotext, good to get a&nbsp;feel for the&nbsp;packet-based string transfer
+</li><li> <span class="code">=3A</span> - show only the&nbsp;ODA declarations
+</li><li> <span class="code">=8A</span> - show only the&nbsp;TMC data
+</li></ul></p>
+<p>
+Example scan output:
+<pre class="">scan start
+          freq  rssi      name      badgrp  seen RDS group counts
+STATION:  88.2&nbsp;  12&nbsp;   [EVROPA 2]    --:1&nbsp;  0A:38&nbsp; 1A:3&nbsp;  2A:18
+STATION:  89.5&nbsp;  12&nbsp;   [COUNTRY ]    --:0&nbsp;  0A:20&nbsp; 2A:20&nbsp;10A:20
+STATION:  90.3&nbsp;  12&nbsp;   [EXPRESFM]    --:10&nbsp; 0A:45&nbsp; 2A:5
+STATION:  92.6&nbsp;   9&nbsp;   [R-PLUS  ]    --:36&nbsp; 0A:12&nbsp; 2A:6&nbsp;  3A:1&nbsp;  8A:4&nbsp;   ODA:8A:1:0xCD46(TMC)
+STATION:  93.7&nbsp;   4&nbsp;   [HITRADIO]    --:0&nbsp;  0A:36&nbsp; 2A:18&nbsp; 3A:3&nbsp; 11A:2&nbsp;   ODA:11A:3:0x4BD7(RT+)
+STATION:  94.1&nbsp;   9&nbsp;   [  FAJN  ]    --:27&nbsp; 0A:22&nbsp; 2A:8&nbsp;  3A:1&nbsp; 11A:1&nbsp;   ODA:11A:1:0x4BD7(RT+)
+STATION:  94.6&nbsp;   3&nbsp;   [R-ZURNAL]    --:0&nbsp;  0A:30&nbsp; 1A:5&nbsp;  2A:7&nbsp;  3A:4&nbsp;  8A:11&nbsp;   ODA:8A:4:0xCD46(TMC)
+STATION:  95.3&nbsp;  15&nbsp;   [  BEAT  ]    --:0&nbsp;  0A:20&nbsp; 2A:20&nbsp;10A:19
+STATION:  95.7&nbsp;  13&nbsp;   [ SIGNAL ]    --:1&nbsp;  0A:29&nbsp; 2A:30
+STATION:  96.6&nbsp;  15&nbsp;   [ IMPULS ]    --:16&nbsp; 0A:25&nbsp; 2A:19
+STATION:  98.7&nbsp;  10&nbsp;   [CLASSIC ]    --:6&nbsp;  0A:46&nbsp; 2A:6
+STATION: 102.5&nbsp;   9&nbsp;   [RADIO F1]    --:0&nbsp;  0A:38&nbsp; 1A:4&nbsp;  2A:18
+STATION: 105.0&nbsp;   3&nbsp;   [R-VLTAVA]    --:0&nbsp;  0A:40&nbsp; 2A:10&nbsp;14A:10
+scan end
+</pre></p>
+<hr /><a name="Files"></a><h2>Files
+</h2>
+<ul><li> <b><a class="F" href="si4703rds.zip" title="local file">si4703rds.zip</a></b> - all files
+</li><li> <a class="F" href="si4703rds.py" title="local file">si4703rds.py</a> - main code
+</li><li> <a class="F" href="_libsi4703.py" title="local file">_libsi4703.py</a> - chip library
+</li><li> <a class="F" href="_rdslists.py" title="local file">_rdslists.py</a> - lists/dicts of RDS-related data
+</li></ul><hr /><a name="Todo"></a><h2>Todo
+</h2>
+<ul><li> !!! solve the&nbsp;post-initialization sensitivity issues (how???)
+</li><li> option for non-Europe band settings
+</li><li> more hardware options (eg. for USB-I2C dongles)
+</li><li> dump to <a class="a" href="https://rftap.github.io/specifications/" title="remote link: https://rftap.github.io/specifications/" target="_blank">RFtap protocol</a>, for wireshark and other tools
+</li><ul><li> segregate hardware-specific code - interrupts, GPIOs... - to separate code module
+</li><li> commandline options for hardware config
+</li></ul><li> commandline options for individual commands for the&nbsp;chip
+</li><li> TMC event codes, support for TMC location codes
+</li><li> alt-frequencies list
+</li><li> get a&nbsp;si4743&nbsp;chip, try multiband radio
+</li><li> MQTT, for remote control/status/messages
+</li><li> for areas with EWS, consider a&nbsp;module monitoring the&nbsp;data stream, sending to home automation; can be tested with 8A/TMC traffic
+</li></ul><!-- feedback -->
+<!-- /feedback -->
+</body>
+</html>
